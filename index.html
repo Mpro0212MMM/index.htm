@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Eslatma &amp; Xarajatlar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060807;--card:rgba(255,255,255,.035);--line:rgba(255,255,255,.08);--text:#f5f5f2;--muted:#8d9891;--a1:#f5c451;--a2:#34d399;--a3:#60a5fa;--ok:#34d399;--bad:#f87171;--shadow:0 1px 0 rgba(255,255,255,.05) inset,0 24px 60px -24px rgba(0,0,0,.7)}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#fafafb;--card:rgba(255,255,255,.75);--line:rgba(10,10,20,.07);--text:#0b0b0d;--muted:#6b6b76;--shadow:0 1px 0 #fff inset,0 18px 40px -24px rgba(20,20,40,.28)}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Inter,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;background-image:radial-gradient(900px 500px at 0% -10%,rgba(245,196,81,.16),transparent 60%),radial-gradient(700px 420px at 100% 0%,rgba(52,211,153,.12),transparent 60%);background-attachment:fixed;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 env(safe-area-inset-bottom,0px)}
+.wrap{max-width:1000px;margin:0 auto;padding:28px 16px 48px}
+h1{font-size:34px;font-weight:800;margin:0;letter-spacing:-1.2px;background:linear-gradient(90deg,var(--a1),var(--a2),var(--a3));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--muted);margin:4px 0 22px;font-size:14px}
+.tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);padding:5px;border-radius:14px;margin-bottom:20px}
+.tabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:11px;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer}
+.tabs button.on{background:var(--text);color:var(--bg)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;margin-bottom:16px;box-shadow:var(--shadow);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.hero{background:linear-gradient(135deg,#0f766e 0%,#059669 50%,#b7791f 100%);color:#fff;border:0;position:relative;overflow:hidden}.hero::after{content:"";position:absolute;width:260px;height:260px;right:-90px;top:-110px;border-radius:50%;background:rgba(255,255,255,.16);filter:blur(12px);pointer-events:none}
+.lbl{font-size:13px;opacity:.85}
+.big{font-size:46px;font-weight:800;margin-top:8px;letter-spacing:-1.6px;font-variant-numeric:tabular-nums}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.stat{background:rgba(255,255,255,.14);border-radius:12px;padding:12px}
+.stat b{display:block;font-size:17px;margin-top:4px}
+h2{font-size:17px;margin:0 0 14px}
+input,select,button.pri{font:inherit;font-size:16px;width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--text);outline:none}
+input:focus,select:focus{border-color:var(--a2);box-shadow:0 0 0 4px rgba(34,211,238,.15)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form{display:grid;gap:10px}
+button.pri{background:linear-gradient(135deg,#f5c451,#34d399);color:#0b0b0d;border:0;font-weight:700;letter-spacing:.2px;cursor:pointer;margin-top:6px;box-shadow:0 14px 30px -14px rgba(245,196,81,.55);transition:transform .15s,box-shadow .2s}
+button.pri:active{transform:scale(.98)}
+.item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.item .main{flex:1;min-width:0}
+.item .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .s{font-size:13px;color:var(--muted);margin-top:2px}
+.amt{font-weight:700;white-space:nowrap}
+.del,.chk{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:6px 10px;cursor:pointer;font-size:13px}
+.chk.done{background:var(--ok);border-color:var(--ok);color:#fff}
+.done .t{text-decoration:line-through;opacity:.5}
+.over .s{color:var(--bad)}
+.bars{display:flex;align-items:flex-end;gap:8px;height:120px;margin-top:6px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px}
+.bar i{display:block;width:100%;border-radius:8px 8px 4px 4px;background:linear-gradient(180deg,var(--a2),var(--a1));min-height:3px}
+.bar span{font-size:11px;color:var(--muted)}
+.empty{color:var(--muted);font-size:14px;padding:12px 0;text-align:center}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(140%);background:var(--text);color:var(--bg);padding:14px 18px;border-radius:14px;font-weight:600;transition:transform .35s ease;max-width:90%;z-index:9;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.hidden{display:none}
+.linkbtn{background:none;border:0;color:var(--a2);cursor:pointer;font-size:14px;padding:0;font-weight:600}
+.top{position:sticky;top:0;z-index:5;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 14px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);background:var(--card);border-bottom:1px solid var(--line)}
+.top .in{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:800;color:#0b0b0d;background:linear-gradient(135deg,#f5c451,#34d399);box-shadow:0 10px 24px -10px rgba(245,196,81,.7)}
+.brand b{display:block;font-size:16px;letter-spacing:-.3px}
+.brand small{color:var(--muted);font-size:12px}
+.tg{color:var(--text);text-decoration:none;font-size:14px;font-weight:600;border:1px solid var(--line);padding:8px 14px;border-radius:999px}
+.tg:hover{border-color:var(--a2);color:var(--a2)}
+.foot{max-width:1000px;margin:0 auto;padding:24px 16px calc(env(safe-area-inset-bottom,0px) + 36px);color:var(--muted);font-size:13px;text-align:center;border-top:1px solid var(--line)}
+.foot a{color:var(--text);font-weight:600;text-decoration:none}
+.foot a:hover{color:var(--a2)}
+#secRem.hidden{display:none}
+@media(min-width:900px){#secExp,#secRem{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}#secExp .hero,#secExp .card:nth-of-type(1){grid-column:1/-1}#secExp .card{margin-bottom:0}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in"><div class="brand"><span class="logo">M</span><div><b>MproMc</b><small>Eslatma &amp; Xarajatlar</small></div></div><a class="tg" href="https://t.me/Mpro0212Mc" target="_blank" rel="noopener">Telegram</a></div></header>
+<div class="wrap">
+  <h1>Eslatma &amp; Xarajatlar</h1>
+  <p class="sub">Kunlik xarajatlaringizni kuzating va muhim ishlarni unutmang.</p>
+
+  <div class="tabs">
+    <button id="tabExp" class="on">Xarajatlar</button>
+    <button id="tabRem">Eslatmalar</button>
+  </div>
+
+  <!-- XARAJATLAR -->
+  <section id="secExp">
+    <div class="card hero">
+      <div class="row"><span class="lbl" id="todayLbl"></span></div>
+      <div class="big" id="todayTotal">0 so'm</div>
+      <div class="stats">
+        <div class="stat"><span class="lbl">Bu oy</span><b id="monthTotal">0 so'm</b></div>
+        <div class="stat"><span class="lbl">Yozuvlar (bugun)</span><b id="todayCount">0 ta</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Yangi xarajat</h2>
+      <form id="expForm" class="form">
+        <div class="grid2">
+          <input id="amt" type="number" inputmode="numeric" min="1" step="any" placeholder="Summa (so'm)" required>
+          <select id="cat">
+            <option value="oziq">Oziq-ovqat</option>
+            <option value="transport">Transport</option>
+            <option value="uy">Uy-joy</option>
+            <option value="kiyim">Kiyim</option>
+            <option value="kop">Ko‘ngil ochar</option>
+            <option value="boshqa">Boshqa</option>
+          </select>
+        </div>
+        <input id="note" type="text" placeholder="Izoh (ixtiyoriy)" maxlength="80">
+        <button class="pri" type="submit">Qo‘shish</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="row" style="margin-bottom:14px"><h2 style="margin:0">Bugungi xarajatlar</h2></div>
+      <div id="todayList"></div>
+    </div>
+
+    <div class="card">
+      <h2>So‘nggi 7 kun</h2>
+      <div class="bars" id="bars"></div>
+    </div>
+  </section>
+
+  <!-- ESLATMALAR -->
+  <section id="secRem" class="hidden">
+    <div class="card">
+      <div class="row" style="margin-bottom:14px">
+        <h2 style="margin:0">Yangi eslatma</h2>
+        <button class="linkbtn" id="notifBtn">Bildirishnoma yoqish</button>
+      </div>
+      <form id="remForm" class="form">
+        <input id="remText" type="text" placeholder="Nima haqida eslatish kerak?" maxlength="120" required>
+        <div class="grid2">
+          <input id="remDate" type="date" required>
+          <input id="remTime" type="time" required>
+        </div>
+        <button class="pri" type="submit">Eslatma qo‘shish</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Eslatmalar</h2>
+      <div id="remList"></div>
+    </div>
+  </section>
+</div>
+<footer class="foot">© MproMc Studio · Developer: <a href="https://t.me/Mpro0212Mc" target="_blank" rel="noopener">@Mpro0212Mc</a></footer>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const pad = n => String(n).padStart(2,'0');
+  const keyOf = d => d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const money = n => Math.round(n).toLocaleString('en-US').replace(/,/g,' ') + " so'm";
+  const CATS = {oziq:['Oziq-ovqat','#34d399'],transport:['Transport','#22d3ee'],uy:['Uy-joy','#8b5cf6'],kiyim:['Kiyim','#f472b6'],kop:['Ko‘ngil ochar','#fbbf24'],boshqa:['Boshqa','#8a8a93']};
+
+  const load = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch(e){ return []; } };
+  const store = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+  let exp = load('mx_exp');
+  let rem = load('mx_rem');
+
+  const now = new Date();
+  const todayKey = keyOf(now);
+  $('#todayLbl').textContent = now.toLocaleDateString('uz-UZ',{weekday:'long',day:'numeric',month:'long'});
+  $('#remDate').value = todayKey;
+  const plus = new Date(now.getTime() + 60*60*1000);
+  $('#remTime').value = pad(plus.getHours())+':'+pad(plus.getMinutes());
+
+  // ---------- Tabs ----------
+  $('#tabExp').onclick = () => show('exp');
+  $('#tabRem').onclick = () => show('rem');
+  function show(which){
+    const e = which==='exp';
+    $('#secExp').classList.toggle('hidden', !e);
+    $('#secRem').classList.toggle('hidden', e);
+    $('#tabExp').classList.toggle('on', e);
+    $('#tabRem').classList.toggle('on', !e);
+  }
+
+  // ---------- Xarajatlar ----------
+  $('#expForm').onsubmit = ev => {
+    ev.preventDefault();
+    const a = parseFloat($('#amt').value);
+    if (!(a > 0)) return;
+    exp.push({id:Date.now(), dat
