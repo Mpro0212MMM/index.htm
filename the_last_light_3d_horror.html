@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>THE LAST LIGHT — 3D Horror</title>
+<style>
+  :root { color-scheme: dark; --red:#d33b3b; --gold:#d9c38b; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; width:100%; height:100%; overflow:hidden; background:#030506; font-family:Arial,Helvetica,sans-serif; color:#eee; }
+  #game { position:fixed; inset:0; }
+  canvas { display:block; width:100%; height:100%; }
+  #vignette { position:fixed; inset:0; pointer-events:none; background:radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,.58) 100%); z-index:2; }
+  #hud { position:fixed; inset:0; z-index:4; pointer-events:none; }
+  #topline { position:absolute; top:18px; left:18px; right:18px; display:flex; justify-content:space-between; align-items:flex-start; gap:12px; text-shadow:0 2px 8px #000; }
+  .panel { background:rgba(4,8,10,.62); border:1px solid rgba(210,220,220,.18); border-radius:10px; padding:10px 13px; backdrop-filter:blur(5px); }
+  #objective { font-size:13px; letter-spacing:.12em; color:#d9d0bc; text-transform:uppercase; }
+  #keys { font-size:13px; margin-top:5px; color:#fff; }
+  #status { font-size:12px; color:#d4c7a5; text-align:right; }
+  #message { position:absolute; left:50%; top:22%; transform:translateX(-50%); text-align:center; width:min(90%,520px); font-size:14px; line-height:1.5; color:#eee4cf; text-shadow:0 2px 8px #000; opacity:0; transition:opacity .3s; }
+  #crosshair { position:absolute; left:50%; top:50%; width:5px; height:5px; border:1px solid rgba(255,255,255,.75); border-radius:50%; transform:translate(-50%,-50%); }
+  #prompt { position:absolute; left:50%; bottom:17%; transform:translateX(-50%); color:#fff; font-size:12px; letter-spacing:.12em; text-shadow:0 2px 8px #000; }
+  #overlay { position:fixed; inset:0; z-index:10; display:flex; align-items:center; justify-content:center; padding:20px; background:linear-gradient(rgba(0,0,0,.68),rgba(0,0,0,.9)), radial-gradient(ellipse at 50% 30%, #273034, #030506 70%); }
+  .card { width:min(92vw,520px); padding:30px 26px; background:rgba(5,9,11,.84); border:1px solid rgba(220,220,220,.2); box-shadow:0 20px 80px #000; border-radius:15px; text-align:center; }
+  .eyebrow { color:#a9a18e; font-size:10px; letter-spacing:.35em; }
+  h1 { font-size:clamp(34px,8vw,58px); letter-spacing:.12em; margin:12px 0 4px; color:#eee8dc; font-weight:800; }
+  .subtitle { color:#b7b7ad; font-size:13px; line-height:1.6; margin:12px auto 20px; max-width:390px; }
+  button { border:0; cursor:pointer; color:#fff; background:#8e2929; border-radius:7px; padding:14px 22px; font-weight:700; letter-spacing:.12em; min-width:190px; }
+  button:active { transform:scale(.98); }
+  .small { margin-top:14px; font-size:11px; line-height:1.7; color:#898d8b; }
+  #touch { position:fixed; inset:0; z-index:6; display:none; pointer-events:none; }
+  #stick { position:absolute; left:24px; bottom:28px; width:118px; height:118px; border-radius:50%; border:1px solid #ffffff55; background:#ffffff12; pointer-events:auto; touch-action:none; }
+  #nub { position:absolute; width:46px; height:46px; left:35px; top:35px; border-radius:50%; background:#ffffff55; border:1px solid #ffffff88; }
+  .touchBtn { position:absolute; right:22px; bottom:34px; width:65px; height:65px; min-width:0; padding:0; border-radius:50%; background:#ffffff22; border:1px solid #ffffff66; pointer-events:auto; touch-action:none; font-size:11px; }
+  #lookHint { position:absolute; right:20px; bottom:112px; font-size:10px; color:#ffffff99; text-shadow:0 1px 5px #000; }
+  @media (pointer:coarse) { #touch { display:block; } #crosshair { opacity:.5; } }
+  @media (max-width:600px) { #topline { top:10px; left:10px; right:10px; } .panel { padding:8px 10px; } #objective,#keys,#status { font-size:10px; } #prompt { bottom:24%; } }
+</style>
+</head>
+<body>
+<div id="game"></div><div id="vignette"></div>
+<div id="hud">
+  <div id="topline">
+    <div class="panel"><div id="objective">OBJECTIVE</div><div id="keys">Kalitlar: 0 / 3</div></div>
+    <div class="panel" id="status">THE LAST LIGHT<br>Chiroq: ON</div>
+  </div>
+  <div id="message"></div><div id="crosshair"></div><div id="prompt"></div>
+</div>
+<div id="touch">
+  <div id="stick"><div id="nub"></div></div>
+  <div id="lookHint">Ekranning o‘ng tomonini suring — qarash</div>
+  <button class="touchBtn" id="flashBtn">CHIROQ</button>
+</div>
+<div id="overlay">
+  <div class="card">
+    <div class="eyebrow">A SHORT 3D HORROR EXPERIENCE</div>
+    <h1>THE LAST<br>LIGHT</h1>
+    <div class="subtitle">Eski tadqiqot markazidan chiqish uchun 3 ta kalitni top. Yo‘laklarda nimadir seni kuzatyapti.</div>
+    <button id="start">O‘YINNI BOSHLASH</button>
+    <div class="small">Kompyuter: WASD — yurish, sichqoncha — qarash, F — chiroq.<br>Telefon: chap joystick — yurish, o‘ng tomonni surish — qarash.</div>
+  </div>
+</div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const root = document.getElementById('game');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x030608);
+scene.fog = new THREE.FogExp2(0x05090b, 0.055);
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 90);
+camera.position.set(0,1.65,7);
+const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+root.appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0x53616a,0x10100d,0.28));
+const moon = new THREE.DirectionalLight(0x8092a0,0.22); moon.position.set(-5,9,4); moon.castShadow=true; scene.add(moon);
+
+const flashlight = new THREE.SpotLight(0xffedcf, 38, 19, Math.PI/7, .55, 1.5);
+flashlight.position.set(0,0,0); flashlight.target.position.set(0,0,-1);
+camera.add(flashlight); camera.add(flashlight.target); scene.add(camera);
+const ambientDots = [];
+function mat(color, rough=.9, metal=0){ return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal}); }
+const wallMat=mat(0x303638), floorMat=mat(0x171c1d), ceilingMat=mat(0x202628), trimMat=mat(0x111718);
+const obstacleBoxes=[];
+function box(w,h,d,x,y,z,material,collide=true){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; scene.add(m);
+  if(collide) obstacleBoxes.push(new THREE.Box3().setFromObject(m));
+  return m;
+}
+// Long abandoned corridor and side rooms
+box(34,.3,34,0,-.18,0,floorMat,false);
+box(34,.3,34,0,3.8,0,ceilingMat,false);
+box(.4,3.8,34,-17,1.8,0,wallMat); box(.4,3.8,34,17,1.8,0,wallMat);
+box(34,3.8,.4,0,1.8,-17,wallMat); box(34,3.8,.4,0,1.8,17,wallMat);
+// partitions with gaps to make a maze
+const walls=[
+[-10,1.8,-10, .4,3.8,13],[-3,1.8,-8, .4,3.8,18],[5,1.8,-10,.4,3.8,13],
+[11,1.8,-7,.4,3.8,17],[-13,1.8,3,8,3.8,.4],[-5,1.8,5,10,3.8,.4],
+[6,1.8,4,10,3.8,.4],[13,1.8,7,8,3.8,.4],[-10,1.8,12, .4,3.8,9],
+[1,1.8,12, .4,3.8,9]
+];
+for(const [x,y,z,w,h,d] of walls) box(w,h,d,x,y,z,wallMat);
+// support pillars
+for(let x=-14;x<=14;x+=7) for(let z=-14;z<=14;z+=7) box(.35,3.7,.35,x,1.8,z,trimMat);
+// ceiling lights (flickering)
+const lamps=[];
+for(const [x,z] of [[-14,-14],[-6,-14],[2,-14],[10,-14],[-14,-4],[-6,4],[2,4],[10,4],[-6,14],[8,14]]){
+  const l=new THREE.PointLight(0x9fb5b7,1.4,7,2); l.position.set(x,3.35,z); scene.add(l); lamps.push({light:l,phase:Math.random()*6});
+  const fixture=new THREE.Mesh(new THREE.BoxGeometry(1,.08,.3),mat(0x687476,.6)); fixture.position.set(x,3.58,z); scene.add(fixture);
+}
+// scattered props: crates, desks, pipes
+for(const [x,z] of [[-14,-7],[-7,-2],[3,-12],[14,-1],[-13,10],[5,10],[13,13]]){
+  box(1.1,.9,1.1,x,.45,z,mat(0x292724));
+}
+for(const z of [-12,-4,4,12]){
+  const pipe=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,22,8),mat(0x454b49,.45,.5));
+  pipe.rotation.z=Math.PI/2; pipe.position.set(0,3.45,z); scene.add(pipe);
+}
+// exit door
+const door=box(2.8,3,.25,0,1.5,-16.65,mat(0x34302a),false);
+const doorSign= new THREE.Mesh(new THREE.PlaneGeometry(1.1,.3),new THREE.MeshBasicMaterial({color:0xb73b2c}));
+doorSign.position.set(0,2.6,-16.49); scene.add(doorSign);
+
+// Keys: glowing, easy to notice in flashlight
+const keyPositions=[new THREE.Vector3(-13,0.65,-12),new THREE.Vector3(13,0.65,2),new THREE.Vector3(-2,0.65,14)];
+const keys=[];
+for(const p of keyPositions){
+  const group=new THREE.Group();
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.22,.055,8,18),new THREE.MeshStandardMaterial({color:0xe0bd69,emissive:0x6a4210,emissiveIntensity:1.5,metalness:.7,roughness:.25}));
+  ring.rotation.x=Math.PI/2; group.add(ring);
+  const stem=new THREE.Mesh(new THREE.BoxGeometry(.07,.42,.07),mat(0xd7b35e,.3,.7)); stem.position.y=-.22; group.add(stem);
+  group.position.copy(p); scene.add(group); keys.push({group,got:false});
+  const glow=new THREE.PointLight(0xe9bd64,1.2,3); glow.position.copy(p); scene.add(glow);
+}
+
+// The watcher: stylized shadow silhouette, no graphic detail
+const monster=new THREE.Group();
+const dark= new THREE.MeshStandardMaterial({color:0x050708,roughness:1});
+const body=new THREE.Mesh(new THREE.CapsuleGeometry(.42,.95,4,8),dark); body.position.y=1.05; monster.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.34,12,10),dark); head.position.y=1.85; monster.add(head);
+for(const x of [-.13,.13]){
+  const eye=new THREE.Mesh(new THREE.SphereGeometry(.035,8,8),new THREE.MeshBasicMaterial({color:0xb32620}));
+  eye.position.set(x,1.88,-.29); monster.add(eye);
+}
+monster.position.set(14,0,-12); scene.add(monster);
+const monsterLight=new THREE.PointLight(0x4b0808,.7,3); monster.add(monsterLight);
+
+const state={started:false, flashlight:true, keys:0, won:false, lost:false, yaw:0, pitch:0, speed:3.3, touchX:0,touchY:0};
+const message=document.getElementById('message'), promptEl=document.getElementById('prompt');
+function say(t,ms=2300){ message.textContent=t; message.style.opacity=1; clearTimeout(say.timer); say.timer=setTimeout(()=>message.style.opacity=0,ms); }
+function updateHud(){
+  document.getElementById('keys').textContent=`Kalitlar: ${state.keys} / 3`;
+  document.getElementById('status').innerHTML=`THE LAST LIGHT<br>Chiroq: ${state.flashlight?'ON':'OFF'}`;
+}
+function toggleFlash(){state.flashlight=!state.flashlight; flashlight.visible=state.flashlight; updateHud();}
+document.getElementById('flashBtn').addEventListener('click',toggleFlash);
+addEventListener('keydown',e=>{if(e.code==='KeyF'&&state.started)toggleFlash();});
+const keysDown={};
+addEventListener('keydown',e=>keysDown[e.code]=true);
+addEventListener('keyup',e=>keysDown[e.code]=false);
+let pointerLocked=false;
+renderer.domElement.addEventListener('click',()=>{if(state.started && matchMedia('(pointer:fine)').matches) renderer.domElement.requestPointerLock?.();});
+document.addEventListener('pointerlockchange',()=>pointerLocked=document.pointerLockElement===renderer.domElement);
+document.addEventListener('mousemove',e=>{if(pointerLocked){state.yaw-=e.movementX*.0023;state.pitch-=e.movementY*.002;state.pitch=THREE.MathUtils.clamp(state.pitch,-1.15,1.15);}});
+let lookTouch=null;
+renderer.domElement.addEventListener('touchstart',e=>{
+  for(const t of e.changedTouches) if(t.clientX>innerWidth*.42) lookTouch={id:t.identifier,x:t.clientX,y:t.clientY};
+},{passive:true});
+renderer.domElement.addEventListener('touchmove',e=>{
+  if(!lookTouch)return;
+  for(const t of e.changedTouches) if(t.identifier===lookTouch.id){
+    state.yaw-=(t.clientX-lookTouch.x)*.006; state.pitch-=(t.clientY-lookTouch.y)*.005;
+    state.pitch=THREE.MathUtils.clamp(state.pitch,-1.1,1.1); lookTouch.x=t.clientX;lookTouch.y=t.clientY;
+  }
+},{passive:true});
+renderer.domElement.addEventListener('touchend',e=>{for(const t of e.changedTouches)if(lookTouch&&t.identifier===lookTouch.id)lookTouch=null;},{passive:true});
+
+// Mobile virtual joystick
+const stick=document.getElementById('stick'), nub=document.getElementById('nub');
+let stickId=null, stickVec={x:0,y:0};
+stick.addEventListener('pointerdown',e=>{stickId=e.pointerId;stick.setPointerCapture(stickId);moveStick(e);});
+stick.addEventListener('pointermove',e=>{if(e.pointerId===stickId)moveStick(e);});
+function moveStick(e){const r=stick.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const len=Math.hypot(dx,dy),max=38;if(len>max){dx=dx/len*max;dy=dy/len*max;}nub.style.transform=`translate(${dx}px,${dy}px)`;stickVec.x=dx/max;stickVec.y=dy/max;}
+function resetStick(){stickId=null;stickVec={x:0,y:0};nub.style.transform='translate(0,0)';}
+stick.addEventListener('pointerup',resetStick);stick.addEventListener('pointercancel',resetStick);
+
+function collides(pos){
+  const r=.32;
+  const playerBox=new THREE.Box3(new THREE.Vector3(pos.x-r,.1,pos.z-r),new THREE.Vector3(pos.x+r,1.8,pos.z+r));
+  return obstacleBoxes.some(b=>playerBox.intersectsBox(b));
+}
+const clock=new THREE.Clock();
+function startGame(){
+  document.getElementById('overlay').style.display='none'; state.started=true;
+  camera.position.set(0,1.65,7); state.yaw=0; state.pitch=0;
+  if(matchMedia('(pointer:fine)').matches) renderer.domElement.requestPointerLock?.();
+  say('Topilgan kalitlar bilan chiqish eshigini och.',3500);
+}
+document.getElementById('start').addEventListener('click',startGame);
+
+function endGame(win){
+  state.won=win;state.lost=!win;state.started=false;
+  document.exitPointerLock?.();
+  const card=document.querySelector('.card');
+  document.querySelector('.eyebrow').textContent=win?'YOU ESCAPED':'THE DARKNESS FOUND YOU';
+  document.querySelector('h1').innerHTML=win?'YOU<br>ESCAPED':'GAME<br>OVER';
+  document.querySelector('.subtitle').textContent=win?'Sen eski markazdan chiqding. Ammo bu joyning siri hali ochilmagan...':'Bu safar qochib qutula olmading. Yana bir bor urinib ko‘r.';
+  document.getElementById('start').textContent='QAYTA O‘YNASH';
+  document.getElementById('overlay').style.display='flex';
+  document.getElementById('start').onclick=()=>location.reload();
+}
+function update(dt,t){
+  if(!state.started)return;
+  // camera orientation
+  camera.rotation.order='YXZ'; camera.rotation.y=state.yaw; camera.rotation.x=state.pitch;
+  const forward=new THREE.Vector3(-Math.sin(state.yaw),0,-Math.cos(state.yaw));
+  const right=new THREE.Vector3(Math.cos(state.yaw),0,-Math.sin(state.yaw));
+  let f=(keysDown.KeyW||keysDown.ArrowUp?1:0)-(keysDown.KeyS||keysDown.ArrowDown?1:0)-stickVec.y;
+  let s=(keysDown.KeyD||keysDown.ArrowRight?1:0)-(keysDown.KeyA||keysDown.ArrowLeft?1:0)+stickVec.x;
+  const move=forward.multiplyScalar(f).add(right.multiplyScalar(s));
+  if(move.lengthSq()>1)move.normalize();
+  const next=camera.position.clone().addScaledVector(move,state.speed*dt);
+  if(!collides(new THREE.Vector3(next.x,camera.position.y,next.z))) camera.position.x=next.x;
+  const nextZ=camera.position.clone().addScaledVector(move,state.speed*dt);
+  if(!collides(new THREE.Vector3(camera.position.x,camera.position.y,nextZ.z))) camera.position.z=nextZ.z;
+  camera.position.y=1.65;
+  // flicker lights
+  for(const l of lamps){l.light.intensity=(Math.sin(t*2.3+l.phase)>0.94?0.08:1.05+Math.sin(t*1.7+l.phase)*.16);}
+  // key collection
+  for(const k of keys){
+    if(k.got)continue;
+    k.group.rotation.y+=dt*1.2; k.group.position.y=.68+Math.sin(t*2+k.group.position.x)*.08;
+    if(camera.position.distanceTo(k.group.position)<1.25){k.got=true;scene.remove(k.group);state.keys++;updateHud();say('Kalit topildi. '+state.keys+'/3',1800);}
+  }
+  // watcher moves toward player when nearby
+  const dist=monster.position.distanceTo(camera.position);
+  if(dist<13){const dir=new THREE.Vector3(camera.position.x-monster.position.x,0,camera.position.z-monster.position.z).normalize();monster.position.addScaledVector(dir,dt*(dist<5?1.55:.75));monster.lookAt(camera.position.x,0,camera.position.z);}
+  else {monster.position.x=14+Math.sin(t*.22)*1.5;monster.position.z=-12+Math.cos(t*.2)*1.5;}
+  if(dist<1.15){endGame(false);return;}
+  // exit unlock
+  if(state.keys===3){
+    door.material.color.setHex(0x244b35);
+    if(camera.position.distanceTo(new THREE.Vector3(0,1.5,-15.7))<2.1){endGame(true);return;}
+  }
+  const nearExit=camera.position.distanceTo(new THREE.Vector3(0,1.5,-15.7))<3;
+  promptEl.textContent=nearExit?(state.keys===3?'CHIQISH — yaqinlash':'Chiqish yopiq — 3 ta kalit kerak'):'';
+  if(dist<7 && Math.sin(t*8)>.93) say('Orqangda nimadir bor...',900);
+}
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;
+  update(dt,t); renderer.render(scene,camera);
+}
+animate();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));});
+</script>
+</body>
+</html>
